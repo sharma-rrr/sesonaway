@@ -123,17 +123,40 @@ router.post("/verify-captcha",userController.verfiycaptcha);
 // get all data 
 router.post("/get-data",userController.getData)       
 
-// add product
+// add productz
 router.post("/add-product",userController.addproduct)       
 // update  product
 router.post("/update-product",userController.updateproduct)  
 // customers
 router.post("/add-customer",userController.addcustomer) 
 
+// define array
+router.post("/ad",userController.ad) 
+// create user
+router.post("/createuser",userController.createuser) 
+// buy number
+router.post("/buynumber",userController.buynumber) 
+//
+router.post("/addslot",userController.addslot) 
+// update data
+router.post("/updateslot",userController.updateslot) 
 
- 
+router.post("/getslot",userController.getslot)
+
+router.post("/sendmail",userController.sendemail) 
+
+
+
+//
+
+router.post("/useradd",userController.useradd) 
+
+router.post("/sendmessagep",userController.sendmessage) 
+
+router.post("/groupcShat",userController.adduergroup) 
+
 export default router;
-
+ 
 // sync  loginUser(payload: any, res: Response) {
 //   const { email, password,logintype } = payload;
 //   console.log(payload,"pa")

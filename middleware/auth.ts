@@ -10,6 +10,7 @@ declare global {
         }
     }
 }
+
 export default module.exports=(req:Request,res:Response,next:NextFunction)=>{
     const authHeader=req.headers.authorization;
     const error=new Error();

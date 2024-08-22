@@ -8,11 +8,13 @@ const { Captcha } = require('node-captcha-generator');
 const nodemailer = require("nodemailer");
 const axios = require('axios');
 const { CaptchaGenerator } = require('captcha-canvas');
+import { io } from '../..';
+
 // catcha store
 const captchaStore = new Map<string, string>();
 const SECRET_key='6LdpohYqAAAAANndZcmcGTT2LqZ7LBvJ5VTHWNdj'
 // Example usage in your code
-
+import moment from 'moment';
 import { v4 as uuidv4 } from "uuid";
 
 import bcryptjs = require("bcryptjs");
@@ -41,10 +43,11 @@ import { constants } from 'buffer';
 import { data, post } from 'jquery';
 import { Axios, responseEncoding } from 'axios';
 import { captureRejectionSymbol } from 'events';
+import e = require('express');
+import { waitForDebugger } from 'inspector';
 
 
 class CodeController {
-
     ///Section User Start
     async addNewUser(payload: any, res: Response){
         const {email,password,city,profile,country,Name,dob,refredBy,logintype,phoneNO} = payload;
@@ -612,7 +615,7 @@ async privacy(payload: any, res: Response) {
 }
 
 
- // lanugae  choose
+ // language choose
   async hey(payload:any,res:Response){
    const{language,phoneNO}=payload;
    try{
@@ -1243,23 +1246,21 @@ async ddd (payload:any,res:Response) {
 // user contact info-
 
 async addUserinfo(payload: any, res: Response) {
-    const { email, fname, lname, phoneNumber, address, city, Zipcode, country, state } = payload;
+    const {email, fname, lname, phoneNumber, address, city, Zipcode, country, state} = payload;
     try {
         const user = await db.Users.findOne({
             where: {
                  email 
                 }
         });
-
         if (!user) {
             return commonController.errorMessage("User not found", res);
         }
-
         const userinfo = await db.Contacts.create({
             fname,
             lname,
             phoneNumber,
-            address,
+            address, 
             city,
             Zipcode,
             country,
@@ -1289,7 +1290,9 @@ async updateUserinfo(payload: any, res: Response) {
         }
 
         const user = await db.Users.findOne({
-            where: { email }
+            where: { 
+                email 
+            }
         });
 
         if (!user) {
@@ -1334,14 +1337,14 @@ async deleteUserinfo(payload: any, res: Response) {
         if (!email) {
             return commonController.errorMessage("Email is required", res);
         }
-
         if (!contactId) {
             return commonController.errorMessage("Contact ID is required", res);
         }
 
         const user = await db.Users.findOne({
-            where: { email }
-
+            where: { 
+                email 
+            }
         });
 
         if (!user) {
@@ -1369,10 +1372,10 @@ async deleteUserinfo(payload: any, res: Response) {
 
 
 // user feedback
-async userFeedback(payload:any,res:Response){git add README.md
+async userFeedback(payload:any,res:Response){
     const{name,email,phoneNumber,query} =payload;
     try{
- const userfeedback =await db.Feedbacks.create({
+ const userfeedback = await db.Feedbacks.create({
     name,email,phoneNumber,query
  })
   commonController.successMessage(userfeedback,"user feedback done",res)
@@ -1386,7 +1389,7 @@ async userFeedback(payload:any,res:Response){git add README.md
 async  Nodemailer(payload: any, res: Response) {
     const { name, email, phoneNumber, query } = payload;
     // Create the enhanced HTML message with the new logo
-    const welcomeMessage = `
+    const welcomeMessage =`
     <section style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 50px 0;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
             <div style="padding: 20px; text-align: center; background-color: #007bff; color: #ffffff; border-radius: 8px 8px 0 0;">
@@ -1401,8 +1404,7 @@ async  Nodemailer(payload: any, res: Response) {
                 </p>
                 <p style="font-size: 18px; line-height: 1.6; margin: 20px 0;">
                     <strong>Details of your submission:</strong><br>
-                    <strong>Phone Number:</strong> ${phoneNumber}<br>
-                   
+                    <strong>Phone Number:</strong> ${phoneNumber}<br>   
                 </p>
               
                 <p style="font-size: 18px; line-height: 1.6; margin: 20px 0;">
@@ -1416,11 +1418,10 @@ async  Nodemailer(payload: any, res: Response) {
             </div>
         </div>
     </section>`;
-
     try {
         const info = await commonController. transporter.sendMail({
-            from: "<rajni@airai.games>", // Sender address
-            to: 'contact@ankoverseas.com', // List of receivers
+            from: "<rajni@airai.games>", // Sender address  
+            to: 'rajnimodgill4@gmail.com', // List of receivers
             subject: `Welcome to ankoverseas`, // Subject line
             text: `Name: ${name}\nPhone: ${phoneNumber}\nQuery: ${query}`, // Plain text body
             html: welcomeMessage, // HTML body
@@ -1435,7 +1436,7 @@ async  Nodemailer(payload: any, res: Response) {
 
         commonController.successMessage(user, "User data saved successfully", res);
     } catch (err) {
-        console.error("Error occurred:", err); // Log the actual error
+        console.error("Error occurred:", err);
         commonController.errorMessage("An error occurred while processing your request.", res);
     }
 }   
@@ -1460,9 +1461,7 @@ async  checkServer() {
                     text: errorMessage,
                     html: `<p>${errorMessage}</p>`,
                 });
-                console.log('Error notification sent.');
-
-           
+                console.log('Error notification sent.');  
         }
     } catch (err) {
         console.error('Error checking server:', err);
@@ -1546,9 +1545,8 @@ async generatecaptcha(payload: any, res: Response) {
   async GetData(payload: any, res: Response) {
     const { email } = payload;
     try {
-        const sql = `
-            SELECT users.email, users.firstName, users.id,users.lastName,userotps.userId AS_otpuserid, userotps.otpValue
-            FROM users
+        const sql = `SELECT users.email, users.firstName, users.id,users.lastName,userotps.userId AS_otpuserid, userotps.otpValue
+         FROM users
             LEFT JOIN userotps ON users.id = userotps.userId
             WHERE users.email = :email;
         `;
@@ -1566,15 +1564,13 @@ async generatecaptcha(payload: any, res: Response) {
 
 // add product
 async addproduct(payload:any,res:Response){
-    const {  ProductID,ProductName,SupplierID,CategoryID,Unit,Price } = payload;
+    const { ProductID,ProductName,SupplierID,CategoryID,Unit,Price } = payload;
     try{
-
         const user =await db.Products.findOne({
             where:{
                 ProductID
             }
         })
-
         if(user){
             commonController.errorMessage("product id already  exist",res)
 
@@ -1584,7 +1580,6 @@ async addproduct(payload:any,res:Response){
             })
             commonController.successMessage(product," product create successfully",res)
         }
-
     }catch(err){
         commonController.errorMessage("occured error",res)
     }
@@ -1613,7 +1608,6 @@ async updateProduct(payload:any,res:Response){
 
 }
 
-// add co
 async  addCustomer(payload: any, res: Response) {
     const { ProductID, CustomerID, CustomerName, Address, City, Country, PostalCode } = payload;
     console.log(payload,"payload...,.,.,.");
@@ -1627,7 +1621,6 @@ async  addCustomer(payload: any, res: Response) {
         if (!product) {
             return commonController.errorMessage("Product does not exist", res);
         }
-
         const existingCustomer = await db.Customers.findOne({
             where: { 
                 CustomerID: product.id
@@ -1649,18 +1642,315 @@ async  addCustomer(payload: any, res: Response) {
     }
 }
 
-async aa(payload:any,res:Response){
+async sa(payload:any,res:Response){
+    const{email}=payload;
     try{
-
-    }catch(Err){
+        let stringArray = ["Hello", "World", "This", "Is", "An", "Array"];
+        console.log(stringArray,"sfdfdf");
+        console.log(typeof stringArray,"dfdfd");
+    }catch(er){
         commonController.errorMessage("occured error",res)
+    }
+  
+}
+
+
+ async ad(payload:any,res:Response){
+    const{email}=payload;
+ try{
+// Array of any type
+let a: any[] = []; // Initialize an empty array that can hold any datatype
+a.push({ name: "Shiv" });  // Push an object into the array
+console.log(a);  
+console.log(typeof a,"jk");
+
+
+// Array of strings
+let moon: string[] = []; // Initialize an empty array that can hold strings
+moon.push("shiv", "preet", "balkishan");  // Push multiple strings into the array
+console.log(moon, "log type"); 
+
+// Array of numbers
+let sun: number[] = []; // Initialize an empty array that can hold numbers
+sun.push(21,2,3);  // Push a number into the array
+console.log(sun, "log type number");  
+
+// Array of objects
+let obj: object[] = []; // Initialize an empty array that can hold objects
+obj.push({ name: "g", age: 4 });  // Push an object into the array
+console.log(obj, "arr of object");  
+    }catch(error){
+        commonController.errorMessage("occured error",res)
+    }
+ }
+
+
+ async createuser(payload: any, res: Response) {
+    const { email } = payload;
+    try {
+      const user = await db.Users.findOne({
+        where: {
+          email,
+        },
+      });
+      if (user) {
+        commonController.errorMessage("User already exists", res);
+      } else {
+        const newuser = await db.Users.create({
+          email,
+        });
+        commonController.successMessage(newuser, "User added successfully", res);
+      }
+    } catch (err) {
+      commonController.errorMessage("An error occurred", res);
+    }
+  }
+  
+ 
+async buynumber(payload:any,res:Response){
+    const{email,boughtNo}=payload;
+    try{
+        if (boughtNo < 1 || boughtNo > 10) {
+            commonController.errorMessage("Invalid number. Please buy a number between 1 and 10.", res);
+            return;
+          }
+        const user =await db.Users.findOne({
+            where:{
+                email
+            }
+        })
+    if(!user){
+        commonController.errorMessage("user not found",res)
+        return;
+    }
+    const bought =await db.BoughtNumbers.findOne({
+        where:{
+            boughtNo,
+            userId:user.id
+        }
+
+    })
+
+    if(bought){
+        commonController.errorMessage("bought number exist",res)
+        return;
+    }else{
+        const newBoughtNumber =await db.BoughtNumbers.create({
+            boughtNo,    userId:user.id
+        })
+     commonController.successMessage(newBoughtNumber, "Number bought successfully", res);
+
+      // Emit real-time update to all clients
+      io.emit('numberBought', { number: boughtNo });
+    }
+     
+  
+    }catch(err){
+        commonController.errorMessage("occured error",res)
+    }
+}
+
+
+// slot 
+async addSlot(payload:any,res:Response){
+    const{slotName,startTime,endTime,entryFees,winAmount} =payload;
+    try{
+        const newSlot = await db.Slots.create({slotName,startTime,endTime,entryFees,winAmount });
+        commonController.successMessage(newSlot, "Slot created successfully", res);
+    }catch(er){
+        commonController.errorMessage("occured err",res)
+    }
+}
+
+
+
+async updateSlot(payload:any,res:Response){
+    const { id,slotName,startTime,endTime,entryFees,winAmount} =payload;
+    try{
+        const slot =await db.Slot.findOne({
+            where:{
+                id
+            }
+        })
+        if (!slot) {
+            commonController.errorMessage("Slot not found", res);
+            return;
+          }
+          await slot.update({ slotName, startTime, endTime, entryFees, winAmount });
+          commonController.successMessage(slot, "Slot updated successfully", res);
+    }catch(Err){
+        commonController.errorMessage("occired error",res)
+    }
+    
+}
+
+
+async getslot(pay, res) {
+    try {
+      const slots = await db.Slots.findAll(); // Fetch all slots
+      if (slots) {
+        console.log('Fetched slots:', slots); // Debugging line
+        commonController.successMessage(slots, "get all slot", res);
+        io.emit('updateSlots', slots);
+      }
+    } catch (err) {
+      console.error('Error fetching slot data:', err);
+    }
+  }
+ 
+
+
+  async assss(payload: any, res: Response) {
+    const { email, startTime } = payload; 
+    console.log(payload, "pay.....");
+    try {
+      const user = await db.boughtnumbers.findOne({
+        where: {
+             email
+             }
+      });
+      console.log(user, "user....");
+      if (!user) {
+        return commonController.errorMessage("User not found", res);
+      }
+  
+      const adminSlot = await db.Slots.findOne({
+        where: { 
+            id: 1
+         }
+      });
+      console.log(adminSlot, "sjhsjdhj");
+  
+      if (!adminSlot) {
+        return commonController.errorMessage("Admin slot ID does not exist", res);
+      }
+    // Get the current time from the database
+    const currentTime = await db.sequelize.query('SELECT NOW() AS currentTime', { type: QueryTypes.SELECT });
+    const currentDateTime = currentTime[0].currentTime;
+
+
+      const userSlotStartTime = user.slotStartingTime;
+      const adminSlotStartTime = adminSlot.startTime;
+  
+      // Ensure both times are valid and compare them
+      if (userSlotStartTime && adminSlotStartTime) {
+        const userTime = moment(userSlotStartTime, "hh:mm A");
+        const adminTime = moment(adminSlotStartTime, "hh:mm A");
+  
+        if (adminTime.isSameOrBefore(userTime)) {
+          await user.update({
+            userSlotStartTime:adminSlotStartTime// Update with admin's start time
+          });
+          console.log("Slot updated successfully.");
+        } else {
+          console.log("Admin slot start time is after user's slot start time.");
+        }
+      } else {
+        console.log("One of the slot times is empty or invalid.");
+      }
+    } catch (err) {
+      console.error(err);
+      return commonController.errorMessage("An unexpected error occurred", res);
+    }
+  }
+
+
+  async useradd(payload, res) {
+    const { user_id, name } = payload;
+    console.log(payload, "payload received in useradd function");
+    try {
+        // Check if user already exists
+        const user = await db. newUsers.findOne({ where: { user_id } });
+  
+        if (user) {
+            console.log('User already exists:', user);
+            return commonController.errorMessage('User already exists', res);
+        }
+        // Create a new user if not exists
+        const newUser = await db. newUsers.create({ user_id, name });
+        console.log('New user created:', newUser);
+  
+        // Emit the new user event to all connected clients
+        io.emit('userAdded', { user_id, name });
+  
+        // Send success response
+        return commonController.successMessage(newUser, 'User added successfully', res);
+    } catch (err) {
+        console.error('An error occurred:', err);
+        // Send error response
+        return commonController.errorMessage('An error occurred while adding the user.', res);
+    }
+  }
+
+
+
+
+
+
+
+async sendmessage(payload: any, res: Response) {
+    const { user_id, sender_id, message, reciver_id } = payload;
+    try {
+
+        const sender = await db.newUsers.findOne({ 
+            where: { user_id }
+        });
+
+        if (!sender) {
+            return commonController.errorMessage("Sender not found", res);
+        }
+
+        // Save the message to the database
+        const newMessage = await db.chatboxs.create({
+           sender_id,message
+        });
+         io.emit('chatMessage', { sender_id, message });
+        // Respond with success
+        commonController.successMessage(newMessage, "Message sent successfully", res);
+    } catch (error) {
+        console.error('Error sending message:', error);
+        commonController.errorMessage("An error occurred while sending the message", res);
+    }
+}
+
+
+async addinusergroup(payload: any, res: Response) {
+    const {  sender_id, message,user_id } = payload;
+
+    try {
+        const user =await db.newUsers.findOne({
+            where:{
+                user_id
+            }
+        })
+        if(!user){
+        commonController.errorMessage("user not found",res)
+        }
+       
+        // Add the user to the group
+        const addingroup = await db.groupChats.create({
+            sender_id,
+            message
+        });
+        io.emit('userAddedToGroup', { sender_id, message });
+
+        return commonController.successMessage(addingroup, "message send succesfuly", res);
+
+    } catch (err) {
+        console.error('Error adding user to group:', err);
+        return commonController.errorMessage("An error occurred", res);
     }
 }
 
 
 
 
+
+
 }
+
+
+
 
 export default new CodeController();
 // export default new hello();

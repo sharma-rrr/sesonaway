@@ -714,11 +714,8 @@ async deleteWishlist(req,res){
 
 async ddd(req,res){
     try{
-
         await codeController.ddd({
-
         },res)
-
     }catch(Err){
         commonController.errorMessage("occured err",res)
     }
@@ -756,7 +753,6 @@ async updateUserinfo(req,res){
 async deleteuserinfo(req,res){
     const {email,contactId} =req.body;
      try{
-
         await codeController.deleteUserinfo({
             email,contactId
         },res)
@@ -770,16 +766,17 @@ async deleteuserinfo(req,res){
 async userfeedback(req,res){
     const {name,email,phoneNumber,query} = req.body;
     try{
-      
          await codeController.userFeedback({
             name,email,phoneNumber,query
          },res)
-
-
     }catch(err){
         commonController.errorMessage(" occured error",res)
     }
 }
+
+
+
+
 
 
 
@@ -809,8 +806,11 @@ async getcaptcha(req,res){
     }catch(err){
         commonController.errorMessage("occured err",res)
     }
-} 
-
+}
+//  Node.js operates on a single main thread.
+// Implication: Only one operation can be executed at a time in this main thread.
+//  There's no parallel execution of code within the main thread itself.
+// Node.js is single-threaded because it uses one main thread to handle all operations
 //  verify captcha
  async verfiycaptcha(req:Request,res:Response){
     const {email,captcha}=req.body;
@@ -841,8 +841,7 @@ await codeController.GetData({
  // add products 
  async addproduct(req,res){
     const {ProductID,ProductName,SupplierID,CategoryID,Unit,Price}= req.body;
-    try{
-        
+    try{       
    await codeController.addproduct({
     ProductID,ProductName,SupplierID,CategoryID,Unit,Price
     },res)
@@ -853,7 +852,7 @@ await codeController.GetData({
 
  // update products 
  async updateproduct(req,res){
-    const {  ProductID,ProductName,SupplierID,CategoryID,Unit,Price}=req.body;
+    const { ProductID,ProductName,SupplierID,CategoryID,Unit,Price}=req.body;
     try{
         await codeController.updateProduct({
             ProductID,ProductName,SupplierID,CategoryID,Unit,Price
@@ -876,8 +875,130 @@ async addcustomer(req,res){
     }
 }
 
+async ad(req,res){
+    const{email}=req.body;
+    try{
+   await codeController.ad({
+    email
+   },res)
+    }catch(err){
+        commonController.errorMessage("occured error",res)
+    }
+}
 
 
+// 
+async createuser(req,res){
+    const {email}=req.body;
+    try{
+await codeController.createuser({
+  email
+},res)
+    }catch(Error){
+        commonController.errorMessage("occured error",res)
+    }
+}
+ 
+
+async buynumber(req,res){
+    const {email,boughtNo} =req.body;
+    try{
+await codeController. buynumber({
+    email,boughtNo
+},res)
+    }catch(Err){
+        commonController.errorMessage("occured error",res)
+    }
+}
+
+async addslot(req,res){
+    const{slotName,startTime,endTime,entryFees,winAmount} = req.body;
+    try{
+        await codeController.addSlot({
+            slotName,startTime,endTime,entryFees,winAmount
+        },res)
+
+    }catch(err){
+        commonController.errorMessage("occured error",res)
+    }
+}
+
+async updateslot(req,res){
+    const { id,slotName,startTime,endTime,entryFees,winAmount } =req.body;
+    try{
+        await codeController.updateSlot({
+            slotName,startTime,endTime,entryFees,winAmount ,id
+        },res)
+
+    }catch(Err){
+        commonController.errorMessage("occured error",res)
+    }
+}
+
+
+
+
+async getslot(req,res){
+    try{
+        await codeController.getslot({
+     
+        },res)
+    }catch(Err){
+        commonController.errorMessage("occired",res)
+    }
+}
+
+
+async sendemail(req,res){
+    const{email}=req.body;
+ 
+    // try{
+        await codeController.assss({
+            email
+        },res)
+
+    // }catch(err){
+    //     commonController.errorMessage("occured err",res)
+    // }
+}
+
+
+async useradd(req,res){
+    const { user_id,name} =req.body;
+    try{
+        await codeController.useradd({
+            user_id,name
+        },res)
+
+    }catch(Err){
+        commonController.errorMessage("occured error",res)
+    }
+} 
+
+async sendmessage(req,res){
+  const {user_id,sender_id,message,reciver_id} =req.body;
+    try{
+        await codeController.sendmessage({
+            user_id,sender_id,message,reciver_id
+        },res)
+
+    }catch(err){
+        commonController.errorMessage("occired error",res)
+    }
+}
+
+
+async adduergroup(req,res){
+    const {sender_id,message} =req.body;
+    try{
+        await codeController.addinusergroup({
+           sender_id,message
+        },res)
+
+    }catch(err){
+        commonController.errorMessage("occired error",res)
+    }
+}
 
 }
   
