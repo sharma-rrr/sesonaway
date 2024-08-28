@@ -19,7 +19,7 @@ export default module.exports=(req:Request,res:Response,next:NextFunction)=>{
         const token=authHeader.split('Bearer ')[1];
         if(token){
             try{
-                    const user=jwt.verify(token,SECRET_KEY);
+         const user=jwt.verify(token,SECRET_KEY);
                     console.log("header user",user);
                     req.user=user;
                     return next();

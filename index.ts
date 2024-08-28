@@ -1,18 +1,22 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import express ,{ Request, Response, NextFunction} from 'express';
+
+var cors:any = require('cors')
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import cron from 'node-cron';
 import db from './models';
 import auth from './middleware/auth';
+const jwt = require('jsonwebtoken')
+
 import userRoute from './routes/user.routes';
 import memberRoute from './routes/member.routes';
 import avtarRoute from './routes/avtar.routess'; 
 import codeController from './controllers/service/code.controller';
 import commonController from './controllers/common/common.controller';
-import fs from 'fs';
+import fs, { read } from 'fs';
 import path from 'path'; // Import path module
 import { json } from 'body-parser';
+import { sign } from 'crypto';
 let ffmpegStatic = require('ffmpeg-static');
 const ffmpeg = require('fluent-ffmpeg');
 
@@ -47,7 +51,7 @@ app.post('/useradd', (req, res) => {
 });
 
 // Handle adding users to groups and sending group messages
-app.post('/groupchat', async (req, res) => { 
+app.post('/groupchat', async (req, res) => {    
   const { user_id, sender_id, message } = req.body;
   console.log( req.body,"sddddddd");
   try {
@@ -106,6 +110,7 @@ io.on('connection', (socket) => {
 
 
 
+
 // Serve your static index.html file from public directory
 app.get('/socket', (req: Request, res: Response) => {
   res.sendFile(__dirname + '/public/index.html');
@@ -140,9 +145,6 @@ io.on('connection', (socket) => {
       console.log('User disconnected:', socket.id);
   });
 });
-
-
-
 
 // Socket.io setup for emitting numbers from 1 to 10 only once
 io.on('connection', (socket: Socket) => {
@@ -186,9 +188,10 @@ app.post('/useradd', async (req: Request, res: Response) => {
           return commonController.errorMessage('User already exists', res);
       }
 
+
+
       // Create a new user if not exists
       const newUser = await db. newUsers.create({ user_id, name });
-
       console.log('New user created:', newUser);
 
       // Emit the new user event to all connected clients
@@ -206,10 +209,8 @@ app.post('/useradd', async (req: Request, res: Response) => {
 
 
 
-
 async function sendmessage(req: Request, res: Response) {
   const { sender_id, message, reciver_id } = req.body;
-
   try {
       // Check if the receiver exists
       const receiver = await db.newUsers.findOne({
@@ -222,7 +223,9 @@ async function sendmessage(req: Request, res: Response) {
 
       // Check if the sender exists
       const sender = await db.newUsers.findOne({
-          where: { user_id: sender_id }
+          where: { 
+            user_id: sender_id
+           }
       });
 
       if (!sender) {
@@ -237,10 +240,8 @@ async function sendmessage(req: Request, res: Response) {
               reciver_id
           }
       });
-
       // Emit the message to all connected clients
       io.emit('chatMessage', { sender_id, message });
-
       // Respond with success
       return commonController.successMessage(newMessage, "Message sent successfully", res);
   } catch (error) {
@@ -331,15 +332,20 @@ app.post('/ww', (req: Request, res: Response) => {
 });
 
 
+
+// correct ffmpeg 
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
 app.post('/convert-images', (req: Request, res: Response) => {
   const imagesDir = path.resolve('images'); // Absolute path to the images directory
   const outputpath = 'output_dash/output.mp4'; // Output video file path
+  const tempFileList = 'filelist.txt'; // Temporary file for image list
+
   // Check if the directory exists
   if (!fs.existsSync(imagesDir)) {
     return res.status(400).send('Image directory does not exist');
   }
+
   // Collect all image files from the directory
   fs.readdir(imagesDir, (err, files) => {
     if (err) {
@@ -348,36 +354,45 @@ app.post('/convert-images', (req: Request, res: Response) => {
     }
 
     console.log('Files found:', files); // Log found files
-    // Filter out non-image files (optional)
+
+    // Filter out non-image files and sort them if needed
     const imageFiles = files.filter(file => /\.(png|jpg|jpeg)$/i.test(file));
-    
+    imageFiles.sort(); // Optionally sort if you need a specific order
+
     if (imageFiles.length === 0) {
       return res.status(400).send('No images found in the directory');
     }
 
-    // Create a video from images
-    const inputs = imageFiles.map(file => path.join(imagesDir, file));
-    const inputString = inputs.join('|');
+    // Create a file list for FFmpeg input
+    const fileListContent = imageFiles.map(file => `file '${path.join(imagesDir, file)}'`).join('\n');
+    fs.writeFileSync(tempFileList, fileListContent);
 
+    // Create a video from images
     ffmpeg()
-      .input(`concat:${inputString}`)
-      .inputOptions('-framerate 1') // Frame rate (1 frame per second)
+      .input(tempFileList)
+      .inputOptions('-f concat', '-safe 0') // Concatenate files listed in file list
       .videoCodec('libx264')
+      .outputOptions('-pix_fmt yuv420p') // Ensure compatibility with most players
       .output(outputpath)
       .on('start', (cmd) => {
         console.log('FFMPEG command:', cmd);
       })
       .on('end', () => {
         console.log('Encoding complete');
+        fs.unlinkSync(tempFileList); // Clean up temporary file
         res.status(200).send('Encoding complete');
       })
       .on('error', (err) => {
         console.error('Error during encoding:', err);
+        fs.unlinkSync(tempFileList); // Clean up temporary file
         res.status(500).send(`Encoding failed: ${err.message}`);
       })
       .run();
   });
 });
+
+
+
 
 
 
@@ -398,14 +413,12 @@ app.post('/images', (req: Request, res: Response) => {
   if (!fs.existsSync(imagesDir)) {
     return res.status(400).send('Image directory does not exist');
   }
-
   // Collect all image files from the directory
   fs.readdir(imagesDir, (err, files) => {
     if (err) {
       console.error('Error reading input directory:', err);
       return res.status(500).send(`Error reading input directory: ${err.message}`);
     }
-
     console.log('Files found:', files); // Log found files
 
     // Filter out non-image files
@@ -447,25 +460,11 @@ app.post('/images', (req: Request, res: Response) => {
 
 
 
-
-
-
-
-
-
-
-
-
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || 500;
   res.status(status).json({ error: { message: err.message } });
 });
-
-
-
-
-
 
 
 
@@ -483,13 +482,52 @@ app.use('/profile', express.static(__dirname + '/profile'));
 // API routes
 app.use('/api/v1/auth', userRoute);
 app.use('/api/v1/member', auth, memberRoute);
-app.use('/api/v1/avtar', auth, avtarRoute);
+app.use('/api/v1/avtar',auth, avtarRoute);
 
 // Schedule the cron job to run every 15 minutes
 cron.schedule('*/15 * * * *', async () => {
   console.log('Running a task every 15 minutes');
   await codeController.checkServer();
 });
+
+
+
+
+app.post('/add', async (req: Request, res: Response) => {
+  const { email } = req.body;
+  try {
+    const user = await db.Users.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (user) {
+      const token = jwt.sign(
+        { email },
+        process.env.TOKEN_SECRET as string 
+      );
+      commonController.successMessage(token, "Token generated", res);
+    } else {
+      
+      const newUser = await db.Users.create({
+        email,
+      });
+
+      const token = jwt.sign(
+        { email: newUser.email },
+        process.env.TOKEN_SECRET as string
+      );
+      commonController.successMessage(token, "User created and token generated", res);
+    }
+  } catch (error) {
+    console.error("Error occurred:", error);
+    commonController.errorMessage("An error occurred", res);
+  }
+});
+
+
+
 
 // Sync Sequelize models with database and start server
 db.sequelize.sync().then(() => {

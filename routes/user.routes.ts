@@ -148,12 +148,14 @@ router.post("/sendmail",userController.sendemail)
 
 
 //
-
 router.post("/useradd",userController.useradd) 
 
 router.post("/sendmessagep",userController.sendmessage) 
 
-router.post("/groupcShat",userController.adduergroup) 
+router.post("/groupcchat",userController.adduergroup) 
+
+
+router.post("/aaa",userController.aa) 
 
 export default router;
  

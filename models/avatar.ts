@@ -1,7 +1,5 @@
 'use strict';
-import {
-  Model
-}  from 'sequelize';
+import { Model}  from 'sequelize';
 interface avatarAttributes{
 avatar:string;
 }

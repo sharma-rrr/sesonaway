@@ -8,8 +8,6 @@ status:number;
 about:number;
 profilephoto:number;
 userId:number
-
-
 }
 module.exports = (sequelize:any, DataTypes:any) => {
   class  privacy extends Model<UserAttributes>

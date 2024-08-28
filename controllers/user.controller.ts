@@ -3,6 +3,11 @@ import codeController from './service/code.controller';
 import commonController from './common/common.controller';
 import db from '../models';
 import { sign, verify } from 'crypto';
+import fs from 'fs';
+import path from 'path'; // Import path module
+let ffmpegStatic = require('ffmpeg-static');
+const ffmpeg = require('fluent-ffmpeg');
+
 // const multer = require('multer');
 // const upload = multer({ dest: 'uploads/' }); // Destination folder ko apne requirement ke hisab se adjust karein
 
@@ -61,7 +66,7 @@ class UserController {
     }
     
     // privacy setting 
-    async privacy(req:Request,res:Response){
+    async privacy(req:Request,res:Response){      
     const{nobody,everyone,mycontactexception,mycontacts,phoneNO}=req.body;
     try{
      await codeController.privacy({
@@ -236,21 +241,16 @@ async changePassword(req: Request, res: Response) {
 }
 // get all users
 async getAll(req: Request, res: Response) {
-    
     try {
-        
         await codeController.getAll({
-           
-
         }, res)
     } catch (e) {
         commonController.errorMessage("user not get", res)
         console.log(e);
-
     }
 }
+
 // async test(req: Request, res: Response) {
-    
 //     try {
 //          const{cc,phone}=req.body;
 //         await codeController.test({
@@ -1000,6 +1000,105 @@ async adduergroup(req,res){
     }
 }
 
+
+async aa(req: Request, res: Response) {
+    try {
+      const { avatar } = req.body; 
+      const imagesDir = path.resolve('images'); // Absolute path to the images directory
+      const outputpath = path.join('output_dash', `output_${Date.now()}.mp4`); // Output video file path 
+      //with a timestamp
+  
+      // Check if the directory exists
+      if (!fs.existsSync(imagesDir)) {
+        return res.status(400).json({ message: 'Image directory does not exist' });
+      }
+  
+      // Collect all image files from the directory
+      fs.readdir(imagesDir, (err, files) => {
+        if (err) {
+          console.error('Error reading input directory:', err);
+          return res.status(500).json({ message: `Error reading input directory: ${err.message}` });
+        }
+  
+        console.log('Files found:', files); // Log found files
+  
+        // Filter out non-image files   
+        const imageFiles = files.filter(file => /\.(png|jpg|jpeg)$/i.test(file));
+  
+        if (imageFiles.length === 0) {
+          return res.status(400).json({ message: 'No images found in the directory' });
+        }
+  
+        // Create a video from images
+        const inputs = imageFiles.map(file => path.join(imagesDir, file));
+        const inputString = inputs.join('|');
+  
+        ffmpeg()
+          .input(`concat:${inputString}`)
+          .inputOptions('-framerate 1') // Frame rate (1 frame per second)
+          .videoCodec('libx264')
+          .output(outputpath)
+          .on('start', (cmd) => {
+            console.log('FFMPEG command:', cmd);
+          })
+          .on('end', async () => {
+            console.log('Encoding complete');
+  
+            // Save the video path to the database
+            const newRecord = await db.avatars.create({
+              avatar: `https://api.orthomatri.com/${outputpath.replace(/\\/g, '/')}`, // Replace backslashes with forward slashes
+            });
+  
+            res.status(200).json({
+              message: "Encoding complete and video path saved to database",
+              data: {
+                id: newRecord.id,
+                avatar: newRecord.avatar,
+                updatedAt: newRecord.updatedAt,
+                createdAt: newRecord.createdAt,
+              }
+            });
+          })
+          .on('error', (err) => {
+            console.error('Error during encoding:', err);
+            res.status(500).json({ message: `Encoding failed: ${err.message}` });
+          })
+          .run();
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ message: 'An unexpected error occurred' });
+    }
+  }
+
+
+
+  async createimage(req, res) {
+    try {
+ 
+        const {  avatar } = req.file;
+        console.log("req.......",req.file)
+    //   const {fullName,organization,email,phone,description} = req.body;
+        var response = `${req.file.path}`;
+        if (response.match(/\.(png|jpg|jpeg)$/)) {
+     const user =   await  db .avatars.create({avatar:"https://api.orthomatri.com/" + response,});
+          commonController.successMessage(req.file.path,"profile Uploaded Successfully", res);
+      }else {
+          commonController.errorMessage("Please upload png and jpg image file", res);
+        }
+      
+    } catch (e) {
+      console.log(e)
+      commonController.errorMessage("not upload", res)
+    }
+
+  }
+
+                  
+
+  
+  
+  
 }
   
 

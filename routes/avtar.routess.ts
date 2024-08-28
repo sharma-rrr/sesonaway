@@ -31,6 +31,12 @@ const router = express.Router();
 router.post("/updateimage",upload.single("profile"),userController.updatedImage);
 // update photo for kyc
 router.post("/updateimagee",upload.single("photo"),userController.updateImage);
+router.post("/rrr",upload.single("avatar"),userController.createimage);
+
+
+
+// upload image
+
 
 export default router;
 

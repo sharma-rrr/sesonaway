@@ -1,4 +1,3 @@
-'use strict';
 import { 
   Model
 }  from 'sequelize';
@@ -6,10 +5,7 @@ interface UserAttributes{
     nameOfwish:string;
     comment:string;
     qty:number;
-    productid:string;
-    
-
-
+    productid:string;   
 }
 module.exports = (sequelize:any, DataTypes:any) => {
   class  Wish extends Model<UserAttributes>

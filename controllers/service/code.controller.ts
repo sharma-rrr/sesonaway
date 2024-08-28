@@ -9,7 +9,7 @@ const nodemailer = require("nodemailer");
 const axios = require('axios');
 const { CaptchaGenerator } = require('captcha-canvas');
 import { io } from '../..';
-
+var ffmpeg = require('ffmpeg');
 // catcha store
 const captchaStore = new Map<string, string>();
 const SECRET_key='6LdpohYqAAAAANndZcmcGTT2LqZ7LBvJ5VTHWNdj'
@@ -741,12 +741,12 @@ try{
         await sun.destroy({
             phoneNO
         })
+
         commonController.successMessage(sun,"users is destroy",res)
     }
     else{
         commonController.errorMessage("user not  destroy",res)
     }
-
     }catch(err){
     commonController.errorMessage("Error:occured err",res)
 }
@@ -801,7 +801,6 @@ async getdata(payload: any, res: Response) {
       commonController.errorMessage("An error occurred", res);
     }
   }
-
 
 
 
@@ -947,7 +946,6 @@ async  sust(payload:any, res:Response) {
     try {
         let myArray = [1];
         for (var i = 0; i < 5; i++) {
-            
            // Push the value of 'i' into the array 'a'
            myArray.push(i)
         }
@@ -967,7 +965,6 @@ async  addUser(payload, res) {
     try {
         const existingUser = await db.Users.findOne({ 
             where: {
-
                  email
 
                  } 
@@ -1011,10 +1008,11 @@ async  addUser(payload, res) {
 
 
 
+
+// login user 
 async  loginuser(pay, res) {
     const { email, password } = pay;
     console.log("pay", pay);
-
     try {
         const user = await db.Users.findOne({
             where: {
@@ -1025,9 +1023,6 @@ async  loginuser(pay, res) {
         if (!user) {
             return commonController.errorMessage("User not exist", res);
         }
-
-        
-
         if (user.password == password) {
             const token = jwt.sign({
                 email,
@@ -1090,7 +1085,6 @@ async  NewPassword(payload, res) {
                 email
             }
         });
-
         if (!user) {
             commonController.errorMessage("User not found", res);
             return;
@@ -1884,16 +1878,13 @@ async getslot(pay, res) {
 
 
 
-
-
-
-
 async sendmessage(payload: any, res: Response) {
     const { user_id, sender_id, message, reciver_id } = payload;
     try {
-
         const sender = await db.newUsers.findOne({ 
-            where: { user_id }
+            where: { 
+                user_id 
+            }
         });
 
         if (!sender) {
@@ -1915,8 +1906,7 @@ async sendmessage(payload: any, res: Response) {
 
 
 async addinusergroup(payload: any, res: Response) {
-    const {  sender_id, message,user_id } = payload;
-
+    const {sender_id, message,user_id } = payload;
     try {
         const user =await db.newUsers.findOne({
             where:{
@@ -1926,7 +1916,6 @@ async addinusergroup(payload: any, res: Response) {
         if(!user){
         commonController.errorMessage("user not found",res)
         }
-       
         // Add the user to the group
         const addingroup = await db.groupChats.create({
             sender_id,
@@ -1935,14 +1924,11 @@ async addinusergroup(payload: any, res: Response) {
         io.emit('userAddedToGroup', { sender_id, message });
 
         return commonController.successMessage(addingroup, "message send succesfuly", res);
-
     } catch (err) {
         console.error('Error adding user to group:', err);
         return commonController.errorMessage("An error occurred", res);
     }
 }
-
-
 
 
 
