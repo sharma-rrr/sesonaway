@@ -1075,7 +1075,6 @@ async aa(req: Request, res: Response) {
 
   async createimage(req, res) {
     try {
- 
         const {  avatar } = req.file;
         console.log("req.......",req.file)
     //   const {fullName,organization,email,phone,description} = req.body;
@@ -1094,8 +1093,39 @@ async aa(req: Request, res: Response) {
 
   }
 
-                  
+  async abc(req,res){
+    try{
+await codeController.abcd({
 
+},res)
+    }catch(error){
+        commonController.errorMessage("occured error",res)
+    }
+  }
+                  
+  async video(req,res){
+    try{
+await codeController.video({
+
+},res)
+    }catch(error){
+        commonController.errorMessage("occured error",res)
+    }
+  }
+      
+  async getvideo(req,res){
+    try{
+        let { page, limit } = req.body;
+
+await codeController.getvideo({
+    page, limit
+},res)
+    }catch(error){
+        commonController.errorMessage("occured error",res)
+    }
+  }
+      
+  
   
   
   

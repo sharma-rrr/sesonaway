@@ -6,8 +6,8 @@ import { Server, Socket } from 'socket.io';
 import cron from 'node-cron';
 import db from './models';
 import auth from './middleware/auth';
-const jwt = require('jsonwebtoken')
-
+var jwt = require('jsonwebtoken');
+import axios from 'axios';
 import userRoute from './routes/user.routes';
 import memberRoute from './routes/member.routes';
 import avtarRoute from './routes/avtar.routess'; 
@@ -17,6 +17,7 @@ import fs, { read } from 'fs';
 import path from 'path'; // Import path module
 import { json } from 'body-parser';
 import { sign } from 'crypto';
+import { AssertionError } from 'assert';
 let ffmpegStatic = require('ffmpeg-static');
 const ffmpeg = require('fluent-ffmpeg');
 
@@ -178,18 +179,13 @@ io.on('connection', (socket) => {
 app.post('/useradd', async (req: Request, res: Response) => {
   const { user_id, name } = req.body;
   console.log('Request Body:', req.body);
-
   try {
       // Check if user already exists
       const user = await db. newUsers.findOne({ where: { user_id } });
-
       if (user) {
           console.log('User already exists:', user);
           return commonController.errorMessage('User already exists', res);
       }
-
-
-
       // Create a new user if not exists
       const newUser = await db. newUsers.create({ user_id, name });
       console.log('New user created:', newUser);
@@ -199,7 +195,6 @@ app.post('/useradd', async (req: Request, res: Response) => {
 
       // Send success response
       return commonController.successMessage(newUser, 'User added successfully', res);
-
   } catch (err) {
       console.error('An error occurred:', err);
       // Send error response
@@ -209,10 +204,13 @@ app.post('/useradd', async (req: Request, res: Response) => {
 
 
 
+
+
+
 async function sendmessage(req: Request, res: Response) {
   const { sender_id, message, reciver_id } = req.body;
   try {
-      // Check if the receiver exists
+      // Check if the receiver exists 
       const receiver = await db.newUsers.findOne({
           where: { user_id: reciver_id }
       });
@@ -392,8 +390,7 @@ app.post('/convert-images', (req: Request, res: Response) => {
 });
 
 
-
-
+ 
 
 
 
@@ -494,7 +491,17 @@ cron.schedule('*/15 * * * *', async () => {
 
 
 app.post('/add', async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { email, password, confirmPassword } = req.body;
+
+  // Validate that all required fields are provided
+  if (!email || !password || !confirmPassword) {
+    return commonController.errorMessage("All fields are required", res);
+  }
+
+  // Validate that password and confirmPassword match
+  if (password !== confirmPassword) {
+    return commonController.errorMessage("Passwords do not match", res);
+  }
   try {
     const user = await db.Users.findOne({
       where: {
@@ -505,13 +512,14 @@ app.post('/add', async (req: Request, res: Response) => {
     if (user) {
       const token = jwt.sign(
         { email },
-        process.env.TOKEN_SECRET as string 
+        process.env.TOKEN_SECRET as string
       );
       commonController.successMessage(token, "Token generated", res);
     } else {
-      
+      // Hash the password before saving it to the database
       const newUser = await db.Users.create({
         email,
+        password
       });
 
       const token = jwt.sign(
@@ -525,7 +533,6 @@ app.post('/add', async (req: Request, res: Response) => {
     commonController.errorMessage("An error occurred", res);
   }
 });
-
 
 
 

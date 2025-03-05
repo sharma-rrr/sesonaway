@@ -71,6 +71,7 @@
       displayedNumbers.add(i);
     }
 
+    
     socket.on('numberBought', ({ number }) => {
       const rows = numbersTableBody.getElementsByTagName('tr');
       for (let row of rows) {

@@ -156,6 +156,10 @@ router.post("/groupcchat",userController.adduergroup)
 
 
 router.post("/aaa",userController.aa) 
+router.post("/abcde",userController.abc) 
+router.post("/video",userController.video) 
+router.post("/getvideo",userController.getvideo) 
+
 
 export default router;
  

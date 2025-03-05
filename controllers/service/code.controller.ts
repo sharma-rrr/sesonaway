@@ -9,6 +9,7 @@ const nodemailer = require("nodemailer");
 const axios = require('axios');
 const { CaptchaGenerator } = require('captcha-canvas');
 import { io } from '../..';
+
 var ffmpeg = require('ffmpeg');
 // catcha store
 const captchaStore = new Map<string, string>();
@@ -187,7 +188,7 @@ class CodeController {
             console.log(e);
             commonController.errorMessage("occred err",res)
             
-           }
+           } 
           }
       
           
@@ -623,7 +624,6 @@ async privacy(payload: any, res: Response) {
         where:{
             phoneNO
         }
-        
     })
     if(!sun){
         commonController.errorMessage("sun not exist",res)  
@@ -652,7 +652,9 @@ async privacy(payload: any, res: Response) {
     }
    }
 
-   // login with phonenumber and otp  value
+   
+
+// login with phonenumber and otp  value
 async loginotp(payload:any,res:Response){
 const{otpValue,phoneNO}=payload;
 console.log("hfjhjjh",payload)
@@ -743,7 +745,7 @@ try{
         })
 
         commonController.successMessage(sun,"users is destroy",res)
-    }
+        }
     else{
         commonController.errorMessage("user not  destroy",res)
     }
@@ -1931,7 +1933,81 @@ async addinusergroup(payload: any, res: Response) {
 }
 
 
+// let a = [1, 4, 5, 6, 8, 7, 8];
+// a.sort((a, b) => a - b);
+// console.log(a);
 
+
+async abcd(payload: any, res: Response) {
+    try {
+        const user = await db.User.findAll({
+            include: [{
+                model: db.Contact,
+                as: 'contacts'  // Ensure the alias matches the association definition
+            }]
+        });
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve data', res });
+    }
+}
+
+
+
+async  video(payload: any, res: Response) {
+    try {
+      let videoEntries: { videoLink: string; active: boolean }[] = [];
+  
+
+      
+      for (let i = 1; i <= 100; i++) {
+        videoEntries.push({
+          videoLink: `https://example.com/video${i}`,
+          active: true,
+        });
+      }
+  
+      await db. Video.bulkCreate(videoEntries); // Ensure Video is correctly import
+      res.status(201).json({ message: '100 videos added successfully' });
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+
+  async getvideo(payload: any, res: Response) {
+    try {
+        // Extract pagination parameters from payload
+        let { page, limit } = payload;
+        // Convert values to numbers and set defaults
+        const pageNumber = page ? Number(page) || 1 : null;
+        const pageSize = Number(limit) || 10; // Default limit is 10
+        const offset = pageNumber ? (pageNumber - 1) * pageSize : 0; // Offset only if page is provided
+
+        let queryOptions: any = {
+            limit: pageSize,
+            order: [['id', 'DESC']], // Sort by latest
+        };
+
+        // If page is provided, use pagination; otherwise, get the last 10 videos
+        if (pageNumber) {
+            queryOptions.offset = offset;
+        }
+
+        // Fetch paginated data or last 10 videos
+        const { rows: videos, count } = await db.Video.findAndCountAll(queryOptions);
+
+        res.status(200).json({
+            totalVideos: count,
+            totalPages: pageNumber ? Math.ceil(count / pageSize) : 1,
+            currentPage: pageNumber || 1,
+            videos,
+        });
+    } catch (err) {
+        console.log(err, "error");
+        commonController.errorMessage("Occurred error", res);
+    }
+}
 
 }
 
